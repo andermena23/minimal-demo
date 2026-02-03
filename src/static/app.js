@@ -25,9 +25,53 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <div class="participants-section">
+            <p class="participants-label"><strong>Participants</strong></p>
+            <div class="participants"></div>
+            <div class="participants-meta"><small class="participants-count">${details.participants.length} enrolled</small></div>
+          </div>
         `;
 
         activitiesList.appendChild(activityCard);
+
+        // Render participant avatars
+        (function renderParticipants(container, participants) {
+          const participantsDiv = container.querySelector('.participants');
+
+          function getInitials(email) {
+            const name = email.split('@')[0];
+            const parts = name.split(/[\.\-_]/).filter(Boolean);
+            if (parts.length === 0) return email[0]?.toUpperCase() || '?';
+            const initials = parts.slice(0, 2).map(p => p[0]?.toUpperCase() || '').join('');
+            return initials;
+          }
+
+          if (!participants || participants.length === 0) {
+            const empty = document.createElement('span');
+            empty.className = 'participants-empty';
+            empty.textContent = 'Be the first to join!';
+            participantsDiv.appendChild(empty);
+            return;
+          }
+
+          const maxVisible = 4;
+          participants.slice(0, maxVisible).forEach(email => {
+            const span = document.createElement('span');
+            span.className = 'participant-avatar';
+            span.textContent = getInitials(email);
+            span.title = email;
+            span.setAttribute('aria-label', email);
+            participantsDiv.appendChild(span);
+          });
+
+          if (participants.length > maxVisible) {
+            const more = document.createElement('span');
+            more.className = 'participant-count';
+            more.textContent = `+${participants.length - maxVisible}`;
+            more.title = `${participants.length} participants`;
+            participantsDiv.appendChild(more);
+          }
+        })(activityCard, details.participants);
 
         // Add option to select dropdown
         const option = document.createElement("option");
