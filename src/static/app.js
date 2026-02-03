@@ -24,17 +24,47 @@ document.addEventListener("DOMContentLoaded", () => {
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <p class="availability"><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <div class="participants-section">
             <p class="participants-label"><strong>Participants</strong></p>
-            <div class="participants"></div>
+            <div class="participants" aria-live="polite"></div>
             <div class="participants-meta"><small class="participants-count">${details.participants.length} enrolled</small></div>
           </div>
         `;
 
         activitiesList.appendChild(activityCard);
 
-        // Render participant avatars
+        // Remove participant (calls backend and refreshes list)
+        async function removeParticipant(activityName, email) {
+          try {
+            const response = await fetch(
+              `/activities/${encodeURIComponent(activityName)}/participants?email=${encodeURIComponent(email)}`,
+              { method: 'DELETE' }
+            );
+            const result = await response.json();
+
+            if (response.ok) {
+              messageDiv.textContent = result.message || 'Participant removed';
+              messageDiv.className = 'info';
+              messageDiv.classList.remove('hidden');
+              setTimeout(() => messageDiv.classList.add('hidden'), 3000);
+              // Refresh the activities to reflect the change
+              await fetchActivities();
+            } else {
+              messageDiv.textContent = result.detail || 'Failed to remove participant';
+              messageDiv.className = 'error';
+              messageDiv.classList.remove('hidden');
+              setTimeout(() => messageDiv.classList.add('hidden'), 4000);
+            }
+          } catch (error) {
+            messageDiv.textContent = 'Failed to remove participant. Please try again.';
+            messageDiv.className = 'error';
+            messageDiv.classList.remove('hidden');
+            console.error('Error removing participant:', error);
+          }
+        }
+
+        // Render participant avatars with removable 'X' controls
         (function renderParticipants(container, participants) {
           const participantsDiv = container.querySelector('.participants');
 
@@ -46,6 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
             return initials;
           }
 
+          participantsDiv.innerHTML = '';
+
           if (!participants || participants.length === 0) {
             const empty = document.createElement('span');
             empty.className = 'participants-empty';
@@ -56,12 +88,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const maxVisible = 4;
           participants.slice(0, maxVisible).forEach(email => {
-            const span = document.createElement('span');
-            span.className = 'participant-avatar';
-            span.textContent = getInitials(email);
-            span.title = email;
-            span.setAttribute('aria-label', email);
-            participantsDiv.appendChild(span);
+            const wrap = document.createElement('span');
+            wrap.className = 'participant-wrap';
+
+            const avatar = document.createElement('span');
+            avatar.className = 'participant-avatar';
+            avatar.textContent = getInitials(email);
+            avatar.title = email;
+            avatar.setAttribute('aria-label', email);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'participant-remove';
+            removeBtn.title = `Remove ${email}`;
+            removeBtn.setAttribute('aria-label', `Remove ${email}`);
+            removeBtn.textContent = '×';
+
+            removeBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              removeParticipant(name, email);
+            });
+
+            wrap.appendChild(avatar);
+            wrap.appendChild(removeBtn);
+            participantsDiv.appendChild(wrap);
           });
 
           if (participants.length > maxVisible) {

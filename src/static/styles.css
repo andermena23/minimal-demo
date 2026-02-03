@@ -88,6 +88,13 @@ section h3 {
   /* allow avatars to overlap slightly for a compact look */
 }
 
+.participant-wrap {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 6px;
+  position: relative;
+}
+
 .participant-avatar {
   width: 34px;
   height: 34px;
@@ -109,9 +116,31 @@ section h3 {
   box-shadow: 0 6px 12px rgba(0,0,0,0.18);
 }
 
+.participant-remove {
+  border: none;
+  background: transparent;
+  color: #999;
+  font-size: 14px;
+  line-height: 1;
+  margin-left: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.participant-remove:hover {
+  background-color: #ffecec;
+  color: #c62828;
+}
+
 /* overlap effect */
-.participants .participant-avatar + .participant-avatar {
-  margin-left: -10px;
+.participants .participant-wrap + .participant-wrap {
+  margin-left: -6px;
 }
 
 .participant-count {
@@ -138,6 +167,14 @@ section h3 {
   margin-top: 6px;
   color: #555;
   font-size: 13px;
+}
+
+/* Remove bullet points from any lists inside activities */
+#activities-list ul,
+.activity-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .form-group {
